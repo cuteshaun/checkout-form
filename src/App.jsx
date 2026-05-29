@@ -548,7 +548,7 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                   })}
                 />
                 <label htmlFor="field-acceptTerms">
-                  I accept the terms and conditions <Req />
+                  Accept terms and conditions <Req />
                 </label>
               </div>
               <FieldError id="error-acceptTerms" error={errors.acceptTerms} />
@@ -560,7 +560,7 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                   {...register("optInUpdates")}
                 />
                 <label htmlFor="field-optInUpdates">
-                  Opt in for updates from this company
+                  Opt in for updates from this company?
                 </label>
               </div>
             </div>
