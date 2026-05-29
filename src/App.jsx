@@ -195,6 +195,7 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                 id="field-fullName"
                 type="text"
                 autoComplete="name"
+                maxLength={60}
                 aria-required="true"
                 aria-invalid={errors.fullName ? "true" : undefined}
                 aria-describedby={errors.fullName ? "error-fullName" : undefined}
@@ -208,8 +209,8 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                       v.trim().length >= 3 ||
                       "Full name must be at least 3 characters.",
                     maxLen: (v) =>
-                      v.length <= 25 ||
-                      "Full name must be 25 characters or less.",
+                      v.length <= 60 ||
+                      "Full name must be 60 characters or less.",
                   },
                 })}
               />
