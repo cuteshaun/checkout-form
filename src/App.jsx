@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { getOrders, saveOrder, clearOrders } from "./storage.js";
 import {
   getTodayDateString,
+  isValidEmail,
   isValidPhone,
   isValidCardNumber,
   isValidExpiration,
@@ -108,7 +109,7 @@ function CheckoutScreen({ headingRef, onSubmit }) {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
       fullName: data.fullName,
-      email: data.email,
+      email: data.email.trim(),
       phone: data.phone,
       shippingAddress: data.shippingAddress,
       preferredDeliveryDate: data.preferredDeliveryDate,
@@ -230,10 +231,8 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                 aria-describedby={errors.email ? "error-email" : undefined}
                 {...register("email", {
                   required: "Email is required.",
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: "Enter a valid email address.",
-                  },
+                  validate: (value) =>
+                    isValidEmail(value) || "Enter a valid email address.",
                 })}
               />
               <FieldError id="error-email" error={errors.email} />

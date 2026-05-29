@@ -14,6 +14,50 @@ export function getTodayDateString() {
   return new Date().toISOString().split("T")[0];
 }
 
+/* ---------- Email ---------- */
+
+/**
+ * Practical, product-friendly email validation for a checkout form.
+ * Not full RFC 5322 — it rejects obvious junk while allowing common real emails.
+ */
+export function isValidEmail(value) {
+  const email = String(value || "").trim();
+
+  if (!email) return false;
+  if (email.includes(" ")) return false;
+  if (email.includes("*")) return false;
+
+  const parts = email.split("@");
+  if (parts.length !== 2) return false;
+
+  const [local, domain] = parts;
+
+  if (!local || !domain) return false;
+
+  const localPattern = /^[A-Za-z0-9._%+-]+$/;
+  if (!localPattern.test(local)) return false;
+  if (local.startsWith(".") || local.endsWith(".")) return false;
+  if (local.includes("..")) return false;
+
+  const domainPattern = /^[A-Za-z0-9.-]+$/;
+  if (!domainPattern.test(domain)) return false;
+  if (domain.startsWith(".") || domain.endsWith(".")) return false;
+  if (domain.includes("..")) return false;
+
+  const labels = domain.split(".");
+  if (labels.length < 2) return false;
+
+  for (const label of labels) {
+    if (!label) return false;
+    if (label.startsWith("-") || label.endsWith("-")) return false;
+  }
+
+  const tld = labels[labels.length - 1];
+  if (!/^[A-Za-z]{2,}$/.test(tld)) return false;
+
+  return true;
+}
+
 /* ---------- Phone ---------- */
 
 /**
