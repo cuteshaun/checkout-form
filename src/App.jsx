@@ -2,10 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { getOrders, saveOrder, clearOrders } from "./storage.js";
 import {
+  getTodayDateString,
+  isValidPhone,
   isValidCardNumber,
   isValidExpiration,
+  isExpirationInPast,
   isValidCvv,
   maskCardNumber,
+  formatPhone,
+  formatCardNumber,
+  formatExpiration,
+  formatCvv,
+  formatDiscountCode,
 } from "./validation.js";
 
 export default function App() {
@@ -80,6 +88,21 @@ function CheckoutScreen({ headingRef, onSubmit }) {
     mode: "onBlur",
   });
 
+  const today = getTodayDateString();
+
+  // Wrap register() so an input is reformatted on every change while staying
+  // fully controlled by react-hook-form (no separate useState).
+  function registerFormatted(name, rules, formatter) {
+    const field = register(name, rules);
+    return {
+      ...field,
+      onChange: (event) => {
+        event.target.value = formatter(event.target.value);
+        return field.onChange(event);
+      },
+    };
+  }
+
   function onValid(data) {
     const order = {
       id: crypto.randomUUID(),
@@ -104,12 +127,14 @@ function CheckoutScreen({ headingRef, onSubmit }) {
   const errorOrder = [
     ["fullName", "Full name"],
     ["email", "Email"],
+    ["phone", "Phone"],
     ["shippingAddress", "Shipping address"],
     ["preferredDeliveryDate", "Preferred delivery date"],
     ["cardNumber", "Card number"],
     ["expiration", "Expiration"],
     ["cvv", "CVV"],
     ["billingAddress", "Billing address"],
+    ["discountCode", "Discount code"],
     ["acceptTerms", "Accept terms and conditions"],
   ];
   const summaryItems = errorOrder.filter(([key]) => errors[key]);
@@ -173,7 +198,20 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                 aria-required="true"
                 aria-invalid={errors.fullName ? "true" : undefined}
                 aria-describedby={errors.fullName ? "error-fullName" : undefined}
-                {...register("fullName", { required: "Full name is required." })}
+                {...register("fullName", {
+                  required: "Full name is required.",
+                  validate: {
+                    chars: (v) =>
+                      /^[A-Za-z\s'-]+$/.test(v) ||
+                      "Full name can only contain letters, spaces, hyphens, and apostrophes.",
+                    minLen: (v) =>
+                      v.trim().length >= 3 ||
+                      "Full name must be at least 3 characters.",
+                    maxLen: (v) =>
+                      v.length <= 25 ||
+                      "Full name must be 25 characters or less.",
+                  },
+                })}
               />
               <FieldError id="error-fullName" error={errors.fullName} />
             </Field>
@@ -189,7 +227,13 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                 aria-required="true"
                 aria-invalid={errors.email ? "true" : undefined}
                 aria-describedby={errors.email ? "error-email" : undefined}
-                {...register("email", { required: "Email is required." })}
+                {...register("email", {
+                  required: "Email is required.",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Enter a valid email address.",
+                  },
+                })}
               />
               <FieldError id="error-email" error={errors.email} />
             </Field>
@@ -204,15 +248,27 @@ function CheckoutScreen({ headingRef, onSubmit }) {
           </p>
 
           <div className="grid">
-            <Field className="grid__half">
+            <Field className="grid__half" error={errors.phone}>
               <label htmlFor="field-phone">Phone</label>
               <input
                 id="field-phone"
                 type="tel"
                 inputMode="tel"
                 autoComplete="tel"
-                {...register("phone")}
+                aria-invalid={errors.phone ? "true" : undefined}
+                aria-describedby={errors.phone ? "error-phone" : undefined}
+                {...registerFormatted(
+                  "phone",
+                  {
+                    validate: (v) =>
+                      !v ||
+                      isValidPhone(v) ||
+                      "Enter a valid 10-digit US phone number.",
+                  },
+                  formatPhone
+                )}
               />
+              <FieldError id="error-phone" error={errors.phone} />
             </Field>
           </div>
         </section>
@@ -238,6 +294,14 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                 }
                 {...register("shippingAddress", {
                   required: "Shipping address is required.",
+                  validate: {
+                    minLen: (v) =>
+                      v.trim().length >= 8 ||
+                      "Shipping address must be at least 8 characters.",
+                    maxLen: (v) =>
+                      v.length <= 120 ||
+                      "Shipping address must be 120 characters or less.",
+                  },
                 })}
               />
               <FieldError
@@ -253,6 +317,7 @@ function CheckoutScreen({ headingRef, onSubmit }) {
               <input
                 id="field-preferredDeliveryDate"
                 type="date"
+                min={today}
                 aria-required="true"
                 aria-invalid={
                   errors.preferredDeliveryDate ? "true" : undefined
@@ -264,6 +329,10 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                 }
                 {...register("preferredDeliveryDate", {
                   required: "Preferred delivery date is required.",
+                  validate: (v) =>
+                    !v ||
+                    v >= today ||
+                    "Delivery date cannot be in the past.",
                 })}
               />
               <FieldError
@@ -289,6 +358,7 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                 type="text"
                 inputMode="numeric"
                 autoComplete="cc-number"
+                maxLength={19}
                 aria-required="true"
                 aria-invalid={errors.cardNumber ? "true" : undefined}
                 aria-describedby={
@@ -296,14 +366,19 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                     ? "help-cardNumber error-cardNumber"
                     : "help-cardNumber"
                 }
-                {...register("cardNumber", {
-                  required: "Enter a valid card number.",
-                  validate: (value) =>
-                    isValidCardNumber(value) || "Enter a valid card number.",
-                })}
+                {...registerFormatted(
+                  "cardNumber",
+                  {
+                    required: "Card number is required.",
+                    validate: (value) =>
+                      isValidCardNumber(value) ||
+                      "Card number must be exactly 16 digits.",
+                  },
+                  formatCardNumber
+                )}
               />
               <p id="help-cardNumber" className="help">
-                Digits and spaces are accepted, e.g. 4242 4242 4242 4242.
+                16 digits, grouped automatically, e.g. 4242 4242 4242 4242.
               </p>
               <FieldError id="error-cardNumber" error={errors.cardNumber} />
             </Field>
@@ -317,7 +392,7 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                 type="text"
                 inputMode="numeric"
                 autoComplete="cc-exp"
-                placeholder=""
+                maxLength={5}
                 aria-required="true"
                 aria-invalid={errors.expiration ? "true" : undefined}
                 aria-describedby={
@@ -325,11 +400,20 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                     ? "help-expiration error-expiration"
                     : "help-expiration"
                 }
-                {...register("expiration", {
-                  required: "Use MM/YY format.",
-                  validate: (value) =>
-                    isValidExpiration(value) || "Use MM/YY format.",
-                })}
+                {...registerFormatted(
+                  "expiration",
+                  {
+                    required: "Expiration date is required.",
+                    validate: {
+                      format: (value) =>
+                        isValidExpiration(value) || "Use MM/YY format.",
+                      notPast: (value) =>
+                        !isExpirationInPast(value) ||
+                        "Expiration date cannot be in the past.",
+                    },
+                  },
+                  formatExpiration
+                )}
               />
               <p id="help-expiration" className="help">
                 Use MM/YY format.
@@ -346,19 +430,24 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                 type="text"
                 inputMode="numeric"
                 autoComplete="cc-csc"
+                maxLength={3}
                 aria-required="true"
                 aria-invalid={errors.cvv ? "true" : undefined}
                 aria-describedby={
                   errors.cvv ? "help-cvv error-cvv" : "help-cvv"
                 }
-                {...register("cvv", {
-                  required: "Enter a valid CVV.",
-                  validate: (value) =>
-                    isValidCvv(value) || "Enter a valid CVV.",
-                })}
+                {...registerFormatted(
+                  "cvv",
+                  {
+                    required: "CVV is required.",
+                    validate: (value) =>
+                      isValidCvv(value) || "CVV must be exactly 3 digits.",
+                  },
+                  formatCvv
+                )}
               />
               <p id="help-cvv" className="help">
-                3 or 4 digits, found on the back of your card.
+                3 digits, found on the back of your card.
               </p>
               <FieldError id="error-cvv" error={errors.cvv} />
             </Field>
@@ -386,6 +475,14 @@ function CheckoutScreen({ headingRef, onSubmit }) {
                 }
                 {...register("billingAddress", {
                   required: "Billing address is required.",
+                  validate: {
+                    minLen: (v) =>
+                      v.trim().length >= 8 ||
+                      "Billing address must be at least 8 characters.",
+                    maxLen: (v) =>
+                      v.length <= 120 ||
+                      "Billing address must be 120 characters or less.",
+                  },
                 })}
               />
               <FieldError
@@ -402,14 +499,34 @@ function CheckoutScreen({ headingRef, onSubmit }) {
           <p className="fieldset__hint">Optional extras and your consent.</p>
 
           <div className="grid">
-            <Field className="grid__half">
+            <Field className="grid__half" error={errors.discountCode}>
               <label htmlFor="field-discountCode">Discount code</label>
               <input
                 id="field-discountCode"
                 type="text"
                 autoComplete="off"
-                {...register("discountCode")}
+                aria-invalid={errors.discountCode ? "true" : undefined}
+                aria-describedby={
+                  errors.discountCode ? "error-discountCode" : undefined
+                }
+                {...registerFormatted(
+                  "discountCode",
+                  {
+                    validate: {
+                      maxLen: (v) =>
+                        !v ||
+                        v.length <= 25 ||
+                        "Discount code must be 25 characters or less.",
+                      chars: (v) =>
+                        !v ||
+                        /^[A-Z0-9-]+$/.test(v) ||
+                        "Use only uppercase letters, numbers, and hyphens.",
+                    },
+                  },
+                  formatDiscountCode
+                )}
               />
+              <FieldError id="error-discountCode" error={errors.discountCode} />
             </Field>
 
             <div className="grid__full checkboxes">
@@ -528,7 +645,7 @@ function OrderCard({ order, index }) {
           <Row label="Customer">{order.fullName}</Row>
         )}
         <Row label="Email">{order.email}</Row>
-        {order.phone && <Row label="Phone">{order.phone}</Row>}
+        {order.phone && <Row label="Phone">{formatPhone(order.phone)}</Row>}
         <Row label="Shipping address">
           <span className="pre">{order.shippingAddress}</span>
         </Row>
