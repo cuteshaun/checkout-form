@@ -56,7 +56,7 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <div className="app-header__inner">
-          <a href="/" className="brand" aria-label="chaos-form">
+          <a href="https://cuteshaun.github.io/checkout-form/" className="brand" aria-label="chaos-form">
             <span className="brand__mark">chaos</span>
             <span className="brand__dot">-</span>
             <span className="brand__rest">form</span>
