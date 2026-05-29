@@ -43,6 +43,10 @@ export default function App() {
     setScreen("checkout");
   }
 
+  function handleViewOrders() {
+    setScreen("confirmation");
+  }
+
   function handleClearOrders() {
     clearOrders();
     setOrders([]);
@@ -65,6 +69,8 @@ export default function App() {
           <CheckoutScreen
             headingRef={checkoutHeadingRef}
             onSubmit={handleOrderSubmit}
+            onViewOrders={handleViewOrders}
+            orderCount={orders.length}
           />
         ) : (
           <ConfirmationScreen
@@ -79,7 +85,7 @@ export default function App() {
   );
 }
 
-function CheckoutScreen({ headingRef, onSubmit }) {
+function CheckoutScreen({ headingRef, onSubmit, onViewOrders, orderCount }) {
   const {
     register,
     handleSubmit,
@@ -570,6 +576,13 @@ function CheckoutScreen({ headingRef, onSubmit }) {
         <div className="form__actions">
           <button type="submit" className="btn btn--primary">
             Place order
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={onViewOrders}
+          >
+            View all orders{orderCount > 0 ? ` (${orderCount})` : ""}
           </button>
         </div>
       </form>

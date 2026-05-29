@@ -328,7 +328,9 @@ a {
 
 .form__actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    gap: var(--space-2);
+    flex-wrap: wrap;
 }
 
 .btn {
@@ -497,7 +499,7 @@ a {
         font-size: 1.6rem;
     }
 
-    .form__actions .btn--primary {
+    .form__actions .btn {
         width: 100%;
     }
 
