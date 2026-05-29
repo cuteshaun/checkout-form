@@ -8,8 +8,6 @@ import {
   maskCardNumber,
 } from "./validation.js";
 
-const DEMO_NOTICE = "This is a demo checkout. Do not enter real payment details.";
-
 export default function App() {
   const [screen, setScreen] = useState("checkout");
   const [orders, setOrders] = useState(() => getOrders());
@@ -50,7 +48,6 @@ export default function App() {
             <span className="brand__dot">-</span>
             <span className="brand__rest">form</span>
           </span>
-          <span className="app-header__tag">Checkout</span>
         </div>
       </header>
 
@@ -69,10 +66,6 @@ export default function App() {
           />
         )}
       </main>
-
-      <footer className="app-footer">
-        <p>{DEMO_NOTICE}</p>
-      </footer>
     </div>
   );
 }
@@ -164,8 +157,8 @@ function CheckoutScreen({ headingRef, onSubmit }) {
 
       <form className="form" onSubmit={handleSubmit(onValid)} noValidate>
         {/* Customer information */}
-        <fieldset className="fieldset">
-          <legend className="legend">Customer information</legend>
+        <section className="fieldset" role="group" aria-labelledby="group-customer">
+          <h2 className="legend" id="group-customer">Customer information</h2>
           <p className="fieldset__hint">Tell us who this order is for.</p>
 
           <div className="grid">
@@ -201,11 +194,11 @@ function CheckoutScreen({ headingRef, onSubmit }) {
               <FieldError id="error-email" error={errors.email} />
             </Field>
           </div>
-        </fieldset>
+        </section>
 
         {/* Contact */}
-        <fieldset className="fieldset">
-          <legend className="legend">Contact</legend>
+        <section className="fieldset" role="group" aria-labelledby="group-contact">
+          <h2 className="legend" id="group-contact">Contact</h2>
           <p className="fieldset__hint">
             We&apos;ll only use this to reach you about your order.
           </p>
@@ -222,11 +215,11 @@ function CheckoutScreen({ headingRef, onSubmit }) {
               />
             </Field>
           </div>
-        </fieldset>
+        </section>
 
         {/* Shipping details */}
-        <fieldset className="fieldset">
-          <legend className="legend">Shipping details</legend>
+        <section className="fieldset" role="group" aria-labelledby="group-shipping">
+          <h2 className="legend" id="group-shipping">Shipping details</h2>
           <p className="fieldset__hint">Where should we send your order?</p>
 
           <div className="grid">
@@ -279,15 +272,12 @@ function CheckoutScreen({ headingRef, onSubmit }) {
               />
             </Field>
           </div>
-        </fieldset>
+        </section>
 
         {/* Payment details */}
-        <fieldset className="fieldset">
-          <legend className="legend">Payment details</legend>
-          <p className="fieldset__hint">
-            All payment fields are required. This is a demo — never enter a real
-            card.
-          </p>
+        <section className="fieldset" role="group" aria-labelledby="group-payment">
+          <h2 className="legend" id="group-payment">Payment details</h2>
+          <p className="fieldset__hint">All payment fields are required.</p>
 
           <div className="grid">
             <Field className="grid__wide" error={errors.cardNumber}>
@@ -373,11 +363,11 @@ function CheckoutScreen({ headingRef, onSubmit }) {
               <FieldError id="error-cvv" error={errors.cvv} />
             </Field>
           </div>
-        </fieldset>
+        </section>
 
         {/* Billing details */}
-        <fieldset className="fieldset">
-          <legend className="legend">Billing details</legend>
+        <section className="fieldset" role="group" aria-labelledby="group-billing">
+          <h2 className="legend" id="group-billing">Billing details</h2>
           <p className="fieldset__hint">The address tied to your card.</p>
 
           <div className="grid">
@@ -404,11 +394,11 @@ function CheckoutScreen({ headingRef, onSubmit }) {
               />
             </Field>
           </div>
-        </fieldset>
+        </section>
 
         {/* Discounts and preferences */}
-        <fieldset className="fieldset">
-          <legend className="legend">Discounts and preferences</legend>
+        <section className="fieldset" role="group" aria-labelledby="group-prefs">
+          <h2 className="legend" id="group-prefs">Discounts and preferences</h2>
           <p className="fieldset__hint">Optional extras and your consent.</p>
 
           <div className="grid">
@@ -458,7 +448,7 @@ function CheckoutScreen({ headingRef, onSubmit }) {
               </div>
             </div>
           </div>
-        </fieldset>
+        </section>
 
         <div className="form__actions">
           <button type="submit" className="btn btn--primary">

@@ -185,9 +185,10 @@ body {
 }
 
 .legend {
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  padding: 0 var(--space-1);
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-1);
   color: var(--text);
 }
 
@@ -461,21 +462,6 @@ body {
 .mono {
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   letter-spacing: 0.04em;
-}
-
-/* ---------- Footer ---------- */
-
-.app-footer {
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-}
-
-.app-footer p {
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding: var(--space-3) var(--space-4);
-  color: var(--text-faint);
-  font-size: 0.85rem;
 }
 
 /* ---------- Responsive ---------- */
